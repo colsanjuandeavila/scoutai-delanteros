@@ -470,12 +470,12 @@ with gr.Blocks(css=CSS, title="ScoutAI - Analizador de Delanteros") as demo:
                 <div style='font-size:15px;font-weight:600;color:#e8f0e2;margin-bottom:6px'>Listo para analizar</div>
                 <div style='font-size:13px'>Selecciona una habilidad, sube el video<br>y presiona <strong style='color:#a3e635'>Analizar con IA</strong></div>
             </div>""")
-            btn_pdf = gr.DownloadButton(
-                label="📄 Descargar Informe en PDF",
+            btn_pdf = gr.Button(
+                "📄 Descargar Informe en PDF",
                 visible=False,
-                value=descargar_pdf,
                 variant="secondary",
             )
+            pdf_file = gr.File(label="Informe PDF listo para descargar", visible=False)
 
     def actualizar_guia(h):
         if not h:
@@ -486,8 +486,16 @@ with gr.Blocks(css=CSS, title="ScoutAI - Analizador de Delanteros") as demo:
             <span style='color:#e8f0e2'>{guia}</span>
         </div>"""
 
+    def generar_y_mostrar_pdf():
+        global ultimo_resultado
+        if not ultimo_resultado["data"]:
+            return gr.update(visible=False)
+        path = generar_pdf(ultimo_resultado["data"], ultimo_resultado["habilidad"])
+        return gr.update(value=path, visible=True)
+
     habilidad.change(fn=actualizar_guia, inputs=[habilidad], outputs=[guia_box])
     btn_analizar.click(fn=procesar_video, inputs=[video_input, habilidad, observaciones], outputs=[reporte, btn_pdf])
+    btn_pdf.click(fn=generar_y_mostrar_pdf, inputs=[], outputs=[pdf_file])
 
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7860)))
